@@ -52,6 +52,16 @@
                     </ul>
                 </li>
             @endcan
+            @can('transaction_access')
+                <li class="nav-item">
+                    <a href="{{ route("admin.transactions.index") }}" class="nav-link {{ request()->is('admin/transactions') || request()->is('admin/transactions/*') ? 'active' : '' }}">
+                        <i class="fa-fw fas fa-file-invoice-dollar nav-icon">
+
+                        </i>
+                        {{ trans('cruds.transaction.title') }}
+                    </a>
+                </li>
+            @endcan
             <li class="nav-item">
                 <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logoutform').submit();">
                     <i class="nav-icon fas fa-fw fa-sign-out-alt">
