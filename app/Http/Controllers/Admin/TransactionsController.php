@@ -17,7 +17,9 @@ class TransactionsController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Transaction::query()->select(sprintf('%s.*', (new Transaction)->table));
+            $query = Transaction::query()
+                ->filterDates()
+                ->select(sprintf('%s.*', (new Transaction)->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');

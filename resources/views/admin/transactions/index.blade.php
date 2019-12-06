@@ -45,10 +45,24 @@
 
 
 @endsection
+
+@section('styles')
+<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css">
+@endsection
+
 @section('scripts')
 @parent
+<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 <script>
     $(function () {
+let filters = `
+<form class="form-inline" action="" id="filtersForm">
+  <div class="form-group mx-3">
+    <input type="text" class="form-control" name="from-to" id="date_filter">
+  </div>
+  <input type="submit" class="btn btn-primary" value="Filter">
+</form>`;
+
   let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
 @can('transaction_delete')
   let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
@@ -80,13 +94,19 @@
   dtButtons.push(deleteButton)
 @endcan
 
+  let searchParams = new URLSearchParams(window.location.search)
   let dtOverrideGlobals = {
     buttons: dtButtons,
     processing: true,
     serverSide: true,
     retrieve: true,
     aaSorting: [],
-    ajax: "{{ route('admin.transactions.index') }}",
+    ajax: {
+      url: "{{ route('admin.transactions.index') }}",
+      data: {
+        'from-to': searchParams.get('from-to'),
+      }
+    },
     columns: [
       { data: 'placeholder', name: 'placeholder' },
 { data: 'id', name: 'id' },
@@ -95,9 +115,44 @@
 { data: 'description', name: 'description' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],
-    order: [[ 1, 'desc' ]],
+    order: [[ 1, 'asc' ]],
     pageLength: 100,
   };
+  $(".datatable-Transaction").one("preInit.dt", function () {
+    $(".dataTables_filter").after(filters);
+    let dateInterval = searchParams.get('from-to');
+    let start = moment().subtract(29, 'days');
+    let end = moment();
+
+    if (dateInterval) {
+        dateInterval = dateInterval.split(' - ');
+        start = dateInterval[0];
+        end = dateInterval[1];
+    }
+
+    $('#date_filter').daterangepicker({
+        "showDropdowns": true,
+        "showWeekNumbers": true,
+        "alwaysShowCalendars": true,
+        startDate: start,
+        endDate: end,
+        locale: {
+            format: 'YYYY-MM-DD',
+            firstDay: 1,
+        },
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'This Year': [moment().startOf('year'), moment().endOf('year')],
+            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+            'All time': [moment().subtract(30, 'year').startOf('month'), moment().endOf('month')],
+        }
+    });
+  });
   $('.datatable-Transaction').DataTable(dtOverrideGlobals);
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
         $($.fn.dataTable.tables(true)).DataTable()

@@ -37,4 +37,16 @@ class Transaction extends Model
     {
         $this->attributes['transaction_date'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
     }
+
+    public function scopeFilterDates($query)
+    {
+        $date = explode(" - ", request()->input('from-to', "")); 
+
+        if(count($date) != 2)
+        {
+            $date = [now()->subDays(29)->format("Y-m-d"), now()->format("Y-m-d")];
+        }
+
+        return $query->whereBetween('transaction_date', $date);
+    }
 }
