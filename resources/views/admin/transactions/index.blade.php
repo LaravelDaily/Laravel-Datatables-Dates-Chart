@@ -15,6 +15,12 @@
     </div>
 
     <div class="card-body">
+        <div class="row mt-2" id="chart">
+            <div class="{{ $chart->options['column_class'] }}">
+                <h3>{!! $chart->options['chart_title'] !!}</h3>
+                {!! $chart->renderHtml() !!}
+            </div>
+        </div>
         <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-Transaction">
             <thead>
                 <tr>
@@ -119,6 +125,7 @@ let filters = `
     pageLength: 100,
   };
   $(".datatable-Transaction").one("preInit.dt", function () {
+    $("#chart").detach().insertAfter(".dataTables_filter");
     $(".dataTables_filter").after(filters);
     let dateInterval = searchParams.get('from-to');
     let start = moment().subtract(29, 'days');
@@ -161,4 +168,6 @@ let filters = `
 });
 
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+{!! $chart->renderJs() !!}
 @endsection

@@ -11,6 +11,7 @@ use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
+use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 
 class TransactionsController extends Controller
 {
@@ -56,7 +57,34 @@ class TransactionsController extends Controller
             return $table->make(true);
         }
 
-        return view('admin.transactions.index');
+        $date = explode(" - ", request()->input('from-to', "")); 
+
+        if(count($date) != 2)
+        {
+            $date = [now()->subDays(29)->format("Y-m-d"), now()->format("Y-m-d")];
+        }
+
+        $settings = [
+            'chart_title'           => 'Amount by days',
+            'chart_type'            => 'line',
+            'report_type'           => 'group_by_date',
+            'model'                 => 'App\\Transaction',
+            'group_by_field'        => 'transaction_date',
+            'group_by_period'       => 'day',
+            'aggregate_function'    => 'sum',
+            'aggregate_field'       => 'amount',
+            'filter_field'          => 'transaction_date',
+            'range_date_start'      => $date[0],
+            'range_date_end'        => $date[1],
+            'group_by_field_format' => 'Y-m-d H:i:s',
+            'column_class'          => 'col-md-12',
+            'entries_number'        => '5',
+            'continuous_time'       => true,
+        ];
+
+        $chart = new LaravelChart($settings);
+
+        return view('admin.transactions.index', compact('chart'));
     }
 
     public function create()
