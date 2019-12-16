@@ -15,7 +15,19 @@
     </div>
 
     <div class="card-body">
-        <div class="row mt-2" id="chart">
+        <div class="row">
+            <div class="col-md-6">
+            <form action="" id="filtersForm">
+                <div class="input-group">
+                <input type="text" name="from-to" class="form-control mr-2" id="date_filter">
+                <span class="input-group-btn">
+                    <input type="submit" class="btn btn-primary" value="Filter">
+                </span> 
+                </div>
+            </form>
+            </div>
+        </div>
+        <div class="row my-2" id="chart">
             <div class="{{ $chart->options['column_class'] }}">
                 <h3>{!! $chart->options['chart_title'] !!}</h3>
                 {!! $chart->renderHtml() !!}
@@ -61,13 +73,39 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 <script>
     $(function () {
-let filters = `
-<form class="form-inline" action="" id="filtersForm">
-  <div class="form-group mx-3">
-    <input type="text" class="form-control" name="from-to" id="date_filter">
-  </div>
-  <input type="submit" class="btn btn-primary" value="Filter">
-</form>`;
+  let searchParams = new URLSearchParams(window.location.search)
+  let dateInterval = searchParams.get('from-to');
+  let start = moment().subtract(29, 'days');
+  let end = moment();
+
+  if (dateInterval) {
+      dateInterval = dateInterval.split(' - ');
+      start = dateInterval[0];
+      end = dateInterval[1];
+  }
+
+  $('#date_filter').daterangepicker({
+      "showDropdowns": true,
+      "showWeekNumbers": true,
+      "alwaysShowCalendars": true,
+      startDate: start,
+      endDate: end,
+      locale: {
+          format: 'YYYY-MM-DD',
+          firstDay: 1,
+      },
+      ranges: {
+          'Today': [moment(), moment()],
+          'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+          'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+          'This Month': [moment().startOf('month'), moment().endOf('month')],
+          'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+          'This Year': [moment().startOf('year'), moment().endOf('year')],
+          'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+          'All time': [moment().subtract(30, 'year').startOf('month'), moment().endOf('month')],
+      }
+  });
 
   let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
 @can('transaction_delete')
@@ -100,7 +138,6 @@ let filters = `
   dtButtons.push(deleteButton)
 @endcan
 
-  let searchParams = new URLSearchParams(window.location.search)
   let dtOverrideGlobals = {
     buttons: dtButtons,
     processing: true,
@@ -124,42 +161,6 @@ let filters = `
     order: [[ 1, 'asc' ]],
     pageLength: 100,
   };
-  $(".datatable-Transaction").one("preInit.dt", function () {
-    $("#chart").detach().insertAfter(".dataTables_filter");
-    $(".dataTables_filter").after(filters);
-    let dateInterval = searchParams.get('from-to');
-    let start = moment().subtract(29, 'days');
-    let end = moment();
-
-    if (dateInterval) {
-        dateInterval = dateInterval.split(' - ');
-        start = dateInterval[0];
-        end = dateInterval[1];
-    }
-
-    $('#date_filter').daterangepicker({
-        "showDropdowns": true,
-        "showWeekNumbers": true,
-        "alwaysShowCalendars": true,
-        startDate: start,
-        endDate: end,
-        locale: {
-            format: 'YYYY-MM-DD',
-            firstDay: 1,
-        },
-        ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-            'This Year': [moment().startOf('year'), moment().endOf('year')],
-            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
-            'All time': [moment().subtract(30, 'year').startOf('month'), moment().endOf('month')],
-        }
-    });
-  });
   $('.datatable-Transaction').DataTable(dtOverrideGlobals);
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
         $($.fn.dataTable.tables(true)).DataTable()
