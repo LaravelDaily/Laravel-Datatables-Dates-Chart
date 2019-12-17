@@ -1,6 +1,6 @@
 # Laravel 6 Datatables with Date Range Filter and Chart
 
-Added some custom code to our QuickAdminPanel-generated table of Transactions.
+Added some custom code to our [QuickAdminPanel](https://quickadminpanel.com)-generated table of Transactions.
 
 Our customers asked us how to implement date filter and charts alongside datatables, so this project was born.
 
